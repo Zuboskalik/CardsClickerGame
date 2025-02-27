@@ -208,6 +208,18 @@
             color: #ccc;
         }
 
+        .combo-alert {
+            margin: 20px;
+            padding: 15px;
+            background: linear-gradient(45deg, #ffff66, #ffcc00);
+            color: #333;
+            border-radius: 10px;
+            display: none;
+            font-size: 20px;
+            text-shadow: 1px 1px 2px white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
         /* Мобильная адаптация */
         @media (max-width: 960px) {
             body {
@@ -221,15 +233,19 @@
             
             #game {
 				width: 80%;
-				margin: 125px 0;
+				margin: 90px 0;
             }
 
             .card {
                 width: 70px;
-                height: 95px;
+                height: 85px;
                 font-size: 16px;
                 margin: 5px;
             }
+			
+			.suit {
+				transform: translate(-50%, -60%);
+			}
 
             #click-button {
                 padding: 12px 24px;
@@ -282,26 +298,14 @@
             }
 
             .combo-alert {
+				position: fixed;
+				top: 10rem;
+				left: 40%;
+				transform: translateX(-50%);
+				width: 60vw;
                 font-size: 16px;
                 padding: 10px;
             }
-        }
-
-        .combo-alert {
-			position: fixed;
-			top: 10rem;
-			left: 50%;
-			transform: translateX(-50%);
-			width: 60vw;
-            margin: 20px;
-            padding: 15px;
-            background: linear-gradient(45deg, #ffff66, #ffcc00);
-            color: #333;
-            border-radius: 10px;
-            display: none;
-            font-size: 20px;
-            text-shadow: 1px 1px 2px white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
     </style>
 </head>
