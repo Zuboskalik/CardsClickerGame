@@ -619,11 +619,13 @@
             const upgradeButton = document.getElementById('upgrade');
             const cost = maxCards < 7 ? 250 * Math.pow(10, maxCards - 2) : Infinity;
             upgradeButton.textContent = maxCards < 7 ? `Улучшить (${cost.toLocaleString()})` : 'Максимум карт';
-            upgradeButton.disabled = score < cost || maxCards >= 7;
         }
 
         function upgradeMaxCards() {
-            if (maxCards >= 7) return;
+            if (maxCards >= 7) {
+                showComboAlert(`Максимальное количество карт!`);
+				return;
+			}
             const cost = 250 * Math.pow(10, maxCards - 2);
             if (score >= cost) {
                 score -= cost;
@@ -634,12 +636,12 @@
                 updateUpgrades();
                 updateScore();
                 saveProgress();
-            }
+            } else {
+                showComboAlert(`Нужно ${cost.toLocaleString()} очков!`);
+			}
         }
 
-        function upgradeSuit(suit) {
-            if (!yg) return;
-            
+        function upgradeSuit(suit) {            
             // Принудительная проверка типа
             if (typeof suitBonuses[suit] !== 'number') {
                 suitBonuses[suit] = 0;
@@ -679,7 +681,6 @@
                 const btn = document.querySelector(`button.suit-upgrade[data-suit="${suit}"]`);
                 const cost = 50 + 200 * suitBonuses[suit];
                 btn.textContent = `${suit} Усилить (${cost.toLocaleString()})`;
-                btn.disabled = score < cost || suitBonuses[suit] >= 5;
             });
         }
 
