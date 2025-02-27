@@ -335,6 +335,9 @@
         const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
         let yg;
         let suitBonuses = {'♠':0, '♥':0, '♦':0, '♣':0};
+		
+		const maxCardCosts = [250, 750, 2000, 5000, 12000, 30000];
+        const suitUpgradeCosts = [100, 300, 900, 2500];
 
         let lastAdTime = 0; // Замена clickCount на таймер
 
@@ -617,70 +620,69 @@
 
         function updateMaxCardsButton() {
             const upgradeButton = document.getElementById('upgrade');
-            const cost = maxCards < 7 ? 250 * Math.pow(10, maxCards - 2) : Infinity;
-            upgradeButton.textContent = maxCards < 7 ? `Улучшить (${cost.toLocaleString()})` : 'Максимум карт';
+            const currentLevel = maxCards - 2;
+            const cost = maxCardCosts[currentLevel] || Infinity;
+            upgradeButton.textContent = currentLevel < maxCardCosts.length 
+                ? `Улучшить (${cost.toLocaleString()})` 
+                : 'Максимум карт';
         }
 
-        function upgradeMaxCards() {
-            if (maxCards >= 7) {
-                showComboAlert(`Максимальное количество карт!`);
-				return;
-			}
-            const cost = 250 * Math.pow(10, maxCards - 2);
+        function upgradeMaxCards() {            
+            const currentLevel = maxCards - 2; // Индекс в массиве цен
+            if (currentLevel >= maxCardCosts.length) {
+                showComboAlert("Достигнут максимальный уровень карт!");
+                return;
+            }
+
+            const cost = maxCardCosts[currentLevel];
             if (score >= cost) {
                 score -= cost;
                 maxCards++;
-                cards = [];
-                updateCardsDisplay();
+                
                 updateMaxCardsDisplay();
                 updateUpgrades();
                 updateScore();
                 saveProgress();
             } else {
-                showComboAlert(`Нужно ${cost.toLocaleString()} очков!`);
-			}
+                showComboAlert(`Нужно ${cost.toLocaleString()} очков для улучшения!`);
+            }
         }
 
-        function upgradeSuit(suit) {            
-            // Принудительная проверка типа
-            if (typeof suitBonuses[suit] !== 'number') {
-                suitBonuses[suit] = 0;
-            }
-
-            if (suitBonuses[suit] >= 5) {
-                console.log(`Масть ${suit} уже максимальна!`);
-                showComboAlert(`Масть ${suit} уже максимальна!`);
+        function upgradeSuit(suit) {
+            const currentLevel = suitBonuses[suit];
+            if (currentLevel >= suitUpgradeCosts.length) {
+                showComboAlert(`Масть ${suit} уже усилена до максимального уровня!`);
                 return;
             }
 
-            const cost = 50 + 100 * suitBonuses[suit];
+            const cost = suitUpgradeCosts[currentLevel];
             if (score >= cost) {
                 score -= cost;
                 suitBonuses[suit]++;
                 
-                // Принудительное обновление интерфейса
                 updateSuitButtons();
                 updateSuitBonusDisplays();
                 updateScore();
                 saveProgress();
                 
-                // Визуальная обратная связь
                 const btn = document.querySelector(`button.suit-upgrade[data-suit="${suit}"]`);
                 if(btn) {
                     btn.style.animation = 'success 0.5s';
                     setTimeout(() => btn.style.animation = '', 500);
                 }
             } else {
-                console.log(`Нужно ${cost.toLocaleString()} очков!`);
-                showComboAlert(`Нужно ${cost.toLocaleString()} очков!`);
+                showComboAlert(`Нужно ${cost.toLocaleString()} очков для усиления масти ${suit}!`);
             }
         }
 
         function updateSuitButtons() {
             suits.forEach(suit => {
                 const btn = document.querySelector(`button.suit-upgrade[data-suit="${suit}"]`);
-                const cost = 50 + 200 * suitBonuses[suit];
-                btn.textContent = `${suit} Усилить (${cost.toLocaleString()})`;
+                const currentLevel = suitBonuses[suit];
+                const cost = suitUpgradeCosts[currentLevel] || Infinity;
+                btn.textContent = currentLevel < suitUpgradeCosts.length 
+                    ? `${suit} Усилить (${cost.toLocaleString()})`
+                    : `${suit} Максимальный уровень`;
             });
         }
 
