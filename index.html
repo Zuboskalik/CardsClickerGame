@@ -1,0 +1,751 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карточный Кликер</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(255,255,0,0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255,255,0,0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 15px rgba(255,255,0,0.5); }
+        }
+
+        body {
+            font-family: 'Press Start 2P', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0a4d0a, #1a5d1a);
+            color: white;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 150%;
+            height: 150%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%232a7d2a' fill-opacity='0.1' d='M0 0h20v20H0V0zm2 2h16v16H2V2zm6 6h8v8H8V8z'/%3E%3C/svg%3E") repeat;
+            transform: rotate(-45deg);
+            z-index: -1;
+        }
+
+        #game {
+            position: relative;
+            z-index: 1;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        .card {
+            display: inline-block;
+            width: 120px;
+            height: 160px;
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+            border-radius: 12px;
+            margin: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            vertical-align: top;
+            transition: transform 0.2s;
+            font-size: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card.black {
+            color: #000000;
+        }
+
+        .card.red {
+            color: #c8102e;
+        }
+
+        .card-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .rank {
+            font-size: 20px;
+            position: absolute;
+        }
+
+        .rank.top { top: 5px; left: 5px; }
+        .rank.bottom { bottom: 5px; right: 5px; transform: rotate(180deg); }
+        .suit { font-size: 40px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        .card-bonus {
+            position: absolute;
+            bottom: 5px;
+            width: 100%;
+            font-size: 14px;
+            color: yellow;
+            text-shadow: 1px 1px 2px black;
+            display: none;
+        }
+
+        .card.highlight {
+            animation: pulse 0.5s;
+            transform: scale(1.1);
+            border: 3px solid gold;
+        }
+
+        #click-button {
+            padding: 20px 40px;
+            font-family: 'Press Start 2P';
+            font-size: 24px;
+            background: linear-gradient(45deg, #ffcc00, #ff9900);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255,153,0,0.5);
+            transition: all 0.3s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #click-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,153,0,0.7);
+        }
+
+        #click-button:active {
+            transform: translateY(0);
+        }
+
+        #click-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent 25%, rgba(255,255,255,0.3), transparent 75%);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+		
+		@keyframes success {
+            0% { background-color: #66ff66; }
+            100% { background-color: inherit; }
+        }
+
+        #score {
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin: 20px;
+        }
+
+        #max-cards {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #upgrade {
+            position: fixed;
+            top: 80px;
+            right: 30px;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #00ff99, #00cc66);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 3px 8px rgba(0,204,102,0.5);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            margin: 5px 0;
+            display: block;
+        }
+
+        #suit-upgrades {
+            position: fixed;
+            top: 140px;
+            right: 30px;
+            text-align: right;
+        }
+
+        .suit-upgrade {
+            display: block;
+            width: 160px;
+            padding: 8px 15px;
+            background: linear-gradient(45deg, #6666ff, #4d4dff);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .suit-bonus {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 960px) {
+            body {
+                padding: 10px;
+            }
+			
+			body::before {
+				width: 100%;
+				height: 100%;
+			}
+            
+            #game {
+				width: 80%;
+				margin: 125px 0;
+            }
+
+            .card {
+                width: 70px;
+                height: 95px;
+                font-size: 16px;
+                margin: 5px;
+            }
+
+            #click-button {
+                padding: 12px 24px;
+                font-size: 16px;
+                margin: 10px auto;
+                display: block;
+                width: 150px;
+            }
+
+            #max-cards {
+                font-size: 14px;
+                left: 10px;
+                right: auto;
+                top: 10px;
+                width: 160px;
+                z-index: 10;
+            }
+
+            #upgrade {
+                font-size: 14px;
+                left: 10px;
+                right: auto;
+                top: 50px;
+                width: 160px;
+                z-index: 10;
+            }
+
+            #suit-upgrades {
+                position: fixed;
+                top: auto;
+                bottom: 60px;
+                right: 10px;
+                text-align: right;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 5px;
+                z-index: 10;
+            }
+
+            .suit-upgrade {
+                width: 100px;
+                padding: 5px 10px;
+                font-size: 12px;
+            }
+
+            .suit-bonus {
+                font-size: 10px;
+                margin-top: 3px;
+            }
+
+            .combo-alert {
+                font-size: 16px;
+                padding: 10px;
+            }
+        }
+
+        .combo-alert {
+            margin: 20px;
+            padding: 15px;
+            background: linear-gradient(45deg, #ffff66, #ffcc00);
+            color: #333;
+            border-radius: 10px;
+            display: none;
+            font-size: 20px;
+            text-shadow: 1px 1px 2px white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="cards-container"></div>
+        <div id="score">Очки: 0</div>
+        <button id="click-button" onclick="generateCard()">Клик!</button>
+        <div id="combo-alert" class="combo-alert"></div>
+    </div>
+    
+    <div id="max-cards">Максимум карт: 2</div>
+    <button id="upgrade" onclick="upgradeMaxCards()">Улучшить (250)</button>
+    
+    <div id="suit-upgrades">
+        <div class="suit-upgrade-container">
+            <button class="suit-upgrade" data-suit="♠" onclick="upgradeSuit('♠')">♠ Усилить (50)</button>
+            <div class="suit-bonus" id="bonus-♠">♠ Уровень: 0</div>
+        </div>
+        <div class="suit-upgrade-container">
+            <button class="suit-upgrade" data-suit="♥" onclick="upgradeSuit('♥')">♥ Усилить (50)</button>
+            <div class="suit-bonus" id="bonus-♥">♥ Уровень: 0</div>
+        </div>
+        <div class="suit-upgrade-container">
+            <button class="suit-upgrade" data-suit="♦" onclick="upgradeSuit('♦')">♦ Усилить (50)</button>
+            <div class="suit-bonus" id="bonus-♦">♦ Уровень: 0</div>
+        </div>
+        <div class="suit-upgrade-container">
+            <button class="suit-upgrade" data-suit="♣" onclick="upgradeSuit('♣')">♣ Усилить (50)</button>
+            <div class="suit-bonus" id="bonus-♣">♣ Уровень: 0</div>
+        </div>
+    </div>
+
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+   
+    <script>
+        const clickMessages = ["Еще!", "Вперед!", "Мощь!", "Крути!", "Давай!", "Ты сможешь!", "Сила!", "Бей!"];
+        let score = 0;
+        let maxCards = 2;
+        let cards = [];
+        const suits = ['♠', '♥', '♦', '♣'];
+        const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+        let yg;
+        let suitBonuses = {'♠':0, '♥':0, '♦':0, '♣':0};
+
+        let lastAdTime = 0; // Замена clickCount на таймер
+
+        async function init() {
+            yg = await YaGames.init();
+            loadProgress();
+            updateUpgrades();
+        }
+
+        function generateCard() {
+            const btn = document.getElementById('click-button');
+            btn.style.animation = 'pulse 0.3s';
+            setTimeout(() => btn.style.animation = '', 300);
+            btn.textContent = clickMessages[Math.floor(Math.random() * clickMessages.length)];
+
+            const suit = suits[Math.floor(Math.random() * suits.length)];
+            const rank = ranks[Math.floor(Math.random() * ranks.length)];
+            
+            cards.push({ suit, rank });
+            if (cards.length > maxCards) cards.shift();
+            
+            updateCardsDisplay();
+            checkBestCombination();
+            score++;
+            updateScore();
+            saveProgress();
+
+            const currentTime = Date.now();
+            if (currentTime - lastAdTime > 75000) { // 75 секунд
+                showAd();
+                lastAdTime = currentTime;
+            }
+        }
+
+        function updateCardsDisplay() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = cards.map((c, i) => 
+                `<div class="card ${['♥', '♦'].includes(c.suit) ? 'red' : 'black'}" data-index="${i}">
+                    <div class="card-content">
+                        <span class="rank top">${c.rank}</span>
+                        <span class="suit">${c.suit}</span>
+                        <span class="rank bottom">${c.rank}</span>
+                    </div>
+                    <div class="card-bonus" id="bonus-${i}"></div>
+                </div>`
+            ).join('');
+        }
+
+        function checkBestCombination() {
+            const combinations = [
+                { check: checkRoyalFlush, minCards: 5 },
+                { check: checkStraightFlush, minCards: 5 },
+                { check: checkFourOfAKind, minCards: 4 },
+                { check: checkFullHouse, minCards: 5 },
+                { check: checkFlush, minCards: 5 },
+                { check: checkStraight, minCards: 5 },
+                { check: checkThreeOfAKind, minCards: 3 },
+                { check: checkTwoPair, minCards: 4 },
+                { check: checkPair, minCards: 2 }
+            ];
+
+            for (const { check, minCards } of combinations) {
+                if (cards.length >= minCards) {
+                    const combo = check();
+                    if (combo) {
+                        const [indices, comboName] = combo;
+                        const baseBonus = getBaseBonus(comboName);
+                        const cardValues = indices.map(i => getCardValue(cards[i]));
+                        const suitBonus = calculateSuitBonus(indices);
+                        
+                        const totalBonus = baseBonus + cardValues.reduce((a,b) => a + b, 0) + suitBonus;
+                        score += totalBonus;
+                        
+                        highlightCards(indices);
+                        showComboAlert(`${comboName}! +${totalBonus.toLocaleString()} очков`);
+                        showCardBonuses(indices, cardValues);
+                        updateScore();
+                        saveProgress();
+                        return;
+                    }
+                }
+            }
+        }
+
+        function getBaseBonus(comboName) {
+            const baseBonuses = {
+                'Пара': 5,
+                'Две пары': 10,
+                'Сет': 15,
+                'Стрит': 25,
+                'Флеш': 50,
+                'Фулл-хаус': 100,
+                'Каре': 200,
+                'Стрит-флеш': 500,
+                'Роял-флеш': 1000
+            };
+            return baseBonuses[comboName] || 0;
+        }
+
+        function getCardValue(card) {
+            return card.rank === 'A' ? 11 : 
+                   ['J','Q','K'].includes(card.rank) ? 10 : 
+                   parseInt(card.rank);
+        }
+
+        function calculateSuitBonus(indices) {
+            return indices.reduce((acc, i) => {
+                return acc + suitBonuses[cards[i].suit];
+            }, 0);
+        }
+
+        function showCardBonuses(indices, cardValues) {
+            indices.forEach((index, i) => {
+                const bonusElement = document.getElementById(`bonus-${index}`);
+                if(bonusElement) {
+                    const total = cardValues[i] + suitBonuses[cards[index].suit];
+                    bonusElement.textContent = `+${total}`;
+                    bonusElement.style.display = 'block';
+                }
+            });
+            
+            setTimeout(() => {
+                indices.forEach(index => {
+                    const bonusElement = document.getElementById(`bonus-${index}`);
+                    if(bonusElement) bonusElement.style.display = 'none';
+                });
+            }, 2000);
+        }
+
+        function highlightCards(indices) {
+            indices.forEach(index => {
+                const card = document.querySelector(`.card[data-index="${index}"]`);
+                if (card) card.classList.add('highlight');
+            });
+            
+            setTimeout(() => {
+                indices.forEach(index => {
+                    const card = document.querySelector(`.card[data-index="${index}"]`);
+                    if (card) card.classList.remove('highlight');
+                });
+            }, 2000);
+        }
+
+        function checkRoyalFlush() {
+            if (cards.length < 5) return null;
+            const royalRanks = ['10', 'J', 'Q', 'K', 'A'];
+            if (royalRanks.every(r => cards.map(c => c.rank).includes(r)) && 
+                cards.every(c => c.suit === cards[0].suit)) {
+                return [Array.from({length:5}, (_,i)=>i), 'Роял-флеш'];
+            }
+            return null;
+        }
+
+        function checkStraightFlush() {
+            if (cards.length < 5) return null;
+            const straight = checkStraight();
+            const flush = checkFlush();
+            if (straight && flush) {
+                return [straight[0], 'Стрит-флеш'];
+            }
+            return null;
+        }
+
+        function checkFourOfAKind() {
+            if (cards.length < 4) return null;
+            const counts = countRanks();
+            const quadRank = Object.keys(counts).find(r => counts[r] >= 4);
+            if (quadRank) {
+                const indices = cards.map((c, i) => c.rank === quadRank ? i : -1).filter(i => i !== -1);
+                return [indices, 'Каре'];
+            }
+            return null;
+        }
+
+        function checkFullHouse() {
+            if (cards.length < 5) return null;
+            const counts = countRanks();
+            const three = Object.keys(counts).find(r => counts[r] >= 3);
+            const pair = Object.keys(counts).find(r => counts[r] >= 2 && r !== three);
+            if (three && pair) {
+                const threeIndices = cards.map((c, i) => c.rank === three ? i : -1).filter(i => i !== -1);
+                const pairIndices = cards.map((c, i) => c.rank === pair ? i : -1).filter(i => i !== -1);
+                return [[...threeIndices, ...pairIndices], 'Фулл-хаус'];
+            }
+            return null;
+        }
+
+        function checkFlush() {
+            if (cards.every(c => c.suit === cards[0].suit)) {
+                return [Array.from({length: cards.length}, (_,i)=>i), 'Флеш'];
+            }
+            return null;
+        }
+
+        function checkStraight() {
+            const values = cards.map(c => 
+                ['J','Q','K','A'].includes(c.rank) ? 
+                ['J','Q','K','A'].indexOf(c.rank) + 11 : 
+                parseInt(c.rank)
+            ).sort((a, b) => a - b);
+
+            let isStraight = true;
+            for (let i = 1; i < values.length; i++) {
+                if (values[i] - values[i-1] !== 1) {
+                    isStraight = false;
+                    break;
+                }
+            }
+
+            if (!isStraight && values.includes(14)) {
+                const wheel = [2,3,4,5,14];
+                isStraight = wheel.every(v => values.includes(v));
+            }
+
+            if (isStraight) {
+                return [Array.from({length: cards.length}, (_,i)=>i), 'Стрит'];
+            }
+            return null;
+        }
+
+        function checkThreeOfAKind() {
+            const counts = countRanks();
+            const threeRank = Object.keys(counts).find(r => counts[r] >= 3);
+            if (threeRank) {
+                const indices = cards.map((c, i) => c.rank === threeRank ? i : -1).filter(i => i !== -1);
+                return [indices, 'Сет'];
+            }
+            return null;
+        }
+
+        function checkTwoPair() {
+            const counts = countRanks();
+            const pairs = Object.keys(counts).filter(r => counts[r] >= 2);
+            if (pairs.length >= 2) {
+                const indices = pairs.flatMap(r => 
+                    cards.map((c, i) => c.rank === r ? i : -1).filter(i => i !== -1)
+                );
+                return [indices, 'Две пары'];
+            }
+            return null;
+        }
+
+        function checkPair() {
+            const counts = countRanks();
+            const pairRank = Object.keys(counts).find(r => counts[r] >= 2);
+            if (pairRank) {
+                const indices = cards.map((c, i) => c.rank === pairRank ? i : -1).filter(i => i !== -1);
+                return [indices, 'Пара'];
+            }
+            return null;
+        }
+
+        function countRanks() {
+            return cards.reduce((acc, c) => {
+                acc[c.rank] = (acc[c.rank] || 0) + 1;
+                return acc;
+            }, {});
+        }
+
+        function showComboAlert(text) {
+            const alert = document.getElementById('combo-alert');
+            alert.textContent = text;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 2000);
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `Очки: ${score.toLocaleString()}`;
+        }
+
+        function updateMaxCardsDisplay() {
+            document.getElementById('max-cards').textContent = `Максимум карт: ${maxCards}`;
+        }
+
+        function updateUpgrades() {
+            updateMaxCardsButton();
+            updateSuitButtons();
+            updateSuitBonusDisplays();
+        }
+
+        function updateMaxCardsButton() {
+            const upgradeButton = document.getElementById('upgrade');
+            const cost = maxCards < 7 ? 250 * Math.pow(10, maxCards - 2) : Infinity;
+            upgradeButton.textContent = maxCards < 7 ? `Улучшить (${cost.toLocaleString()})` : 'Максимум карт';
+            upgradeButton.disabled = score < cost || maxCards >= 7;
+        }
+
+        function upgradeMaxCards() {
+            if (maxCards >= 7) return;
+            const cost = 250 * Math.pow(10, maxCards - 2);
+            if (score >= cost) {
+                score -= cost;
+                maxCards++;
+                cards = [];
+                updateCardsDisplay();
+                updateMaxCardsDisplay();
+                updateUpgrades();
+                updateScore();
+                saveProgress();
+            }
+        }
+
+        function upgradeSuit(suit) {
+            if (!yg) return;
+            
+            // Принудительная проверка типа
+            if (typeof suitBonuses[suit] !== 'number') {
+                suitBonuses[suit] = 0;
+            }
+
+            if (suitBonuses[suit] >= 5) {
+                console.log(`Масть ${suit} уже максимальна!`);
+                showComboAlert(`Масть ${suit} уже максимальна!`);
+                return;
+            }
+
+            const cost = 50 + 100 * suitBonuses[suit];
+            if (score >= cost) {
+                score -= cost;
+                suitBonuses[suit]++;
+                
+                // Принудительное обновление интерфейса
+                updateSuitButtons();
+                updateSuitBonusDisplays();
+                updateScore();
+                saveProgress();
+                
+                // Визуальная обратная связь
+                const btn = document.querySelector(`button.suit-upgrade[data-suit="${suit}"]`);
+                if(btn) {
+                    btn.style.animation = 'success 0.5s';
+                    setTimeout(() => btn.style.animation = '', 500);
+                }
+            } else {
+                console.log(`Нужно ${cost.toLocaleString()} очков!`);
+                showComboAlert(`Нужно ${cost.toLocaleString()} очков!`);
+            }
+        }
+
+        function updateSuitButtons() {
+            suits.forEach(suit => {
+                const btn = document.querySelector(`button.suit-upgrade[data-suit="${suit}"]`);
+                const cost = 50 + 200 * suitBonuses[suit];
+                btn.textContent = `${suit} Усилить (${cost.toLocaleString()})`;
+                btn.disabled = score < cost || suitBonuses[suit] >= 5;
+            });
+        }
+
+        function updateSuitBonusDisplays() {
+            suits.forEach(suit => {
+                const element = document.getElementById(`bonus-${suit}`);
+                if(element) {
+                    element.textContent = `${suit} Уровень: ${suitBonuses[suit]}`;
+                }
+            });
+        }
+
+        async function loadProgress() {
+            try {
+                if (!yg) return;
+                const storage = await yg.getStorage();
+                const savedData = await Promise.all([
+                    storage.getItem('score'),
+                    storage.getItem('maxCards'),
+                    storage.getItem('suitBonuses')
+                ]);
+
+                // Безопасная инициализация
+                score = savedData[0] ? parseInt(savedData[0]) : 0;
+                maxCards = savedData[1] ? parseInt(savedData[1]) : 2;
+                if(savedData[2]) {
+                    const parsedBonuses = JSON.parse(savedData[2]);
+                    suits.forEach(s => {
+                        suitBonuses[s] = parsedBonuses[s] || 0;
+                    });
+                }
+
+                updateMaxCardsDisplay();
+                updateUpgrades();
+                updateScore();
+            } catch (error) {
+                console.error("Ошибка загрузки:", error);
+                showComboAlert("Ошибка данных!");
+            }
+        }
+
+        async function saveProgress() {
+            try {
+                if (!yg) return;
+                const storage = await yg.getStorage();
+                await storage.setItem('score', score.toString());
+                await storage.setItem('maxCards', maxCards.toString());
+                await storage.setItem('suitBonuses', JSON.stringify(suitBonuses));
+            } catch (error) {
+                console.error("Ошибка сохранения прогресса:", error);
+                showComboAlert("Ошибка сохранения прогресса!");
+            }
+        }
+
+        function showAd() {
+            if (!yg) return;
+            yg.adv.showFullscreenAdv({
+                callbacks: {
+                    onOpen: () => console.log("Реклама открыта"),
+                    onClose: (wasShown) => console.log("Реклама закрыта", wasShown),
+                    onError: (error) => console.error("Ошибка при показе рекламы", error)
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
