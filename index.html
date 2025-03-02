@@ -23,7 +23,7 @@
             overflow: hidden;
         }
 		
-		body, button, .card, .combo-alert {
+		body, button, .card, .combo-alert, .combo-alert-ad {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
@@ -241,6 +241,18 @@
             text-shadow: 1px 1px 2px white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
+
+        .combo-alert-ad {
+            margin: 20px;
+            padding: 15px;
+            background: linear-gradient(45deg, #ffff66, #ffcc00);
+            color: #333;
+            border-radius: 10px;
+            display: none;
+            font-size: 20px;
+            text-shadow: 1px 1px 2px white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
 		
         /* Мобильная адаптация */
         @media (max-width: 960px) {
@@ -267,7 +279,7 @@
 
             .card {
                 width: 60px;
-                height: 80px;
+                height: 85px;
                 font-size: 16px;
                 margin: 8px 5px;
             }
@@ -344,15 +356,26 @@
                 font-size: 16px;
                 padding: 10px;
             }
+
+            .combo-alert-ad {
+				position: fixed;
+				top: 180px;
+				left: 40%;
+				transform: translateX(-50%);
+				width: 65vw;
+                font-size: 16px;
+                padding: 10px;
+            }
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
     <div id="game">
         <div id="cards-container"></div>
         <div id="score">Очки: 0</div>
         <button id="click-button" onclick="generateCard()">Клик!</button>
         <div id="combo-alert" class="combo-alert"></div>
+        <div id="combo-alert-ad" class="combo-alert-ad"></div>
     </div>
     
     <div id="max-cards">Максимум карт: 2</div>
@@ -377,7 +400,7 @@
         </div>
     </div>
 
-    <button id="rewarded-video" onclick="showRewardedVideo()">Видео за награду</button>
+    <button id="rewarded-video" onclick="showRewardedVideo()">Посмотреть видео, получить награду</button>
 
     <script src="https://yandex.ru/games/sdk/v2"></script>
    
@@ -399,7 +422,10 @@
         let rewardedBonus = 0;
         let rewardedAvailable = true;
 
+        let adCooldown = 65000;
         let lastAdTime = 0;
+        let adReady = false;
+        let adActive = false;
 		
         async function init() {
 			yg = await YaGames.init();
@@ -407,6 +433,7 @@
             loadProgress();
             updateUpgrades();
             updateGameState();
+			showAd();
         }
             
 		function updateGameState() {
@@ -421,11 +448,13 @@
             rewardedBonus = Math.ceil(nextLevelCost * 0.1);
             
             const rewardButton = document.getElementById('rewarded-video');
-            rewardButton.textContent = `Видео за ${rewardedBonus} очков`;
+            rewardButton.textContent = `Посмотреть видео, получить ${rewardedBonus} очков`;
             rewardButton.hidden = !yg || !rewardedAvailable || nextLevelCost === 0;
         }
 
         async function showRewardedVideo() {
+			if (adActive) return;
+			
             if (!yg || !rewardedAvailable) return;
 
             try {
@@ -454,7 +483,9 @@
             }
         }
 
-        function generateCard() {
+        function generateCard() {		
+			if (adActive) return;
+			
             const btn = document.getElementById('click-button');
             btn.style.animation = 'pulse 0.3s';
             setTimeout(() => btn.style.animation = '', 300);
@@ -474,9 +505,9 @@
             saveProgress();
 
             const currentTime = Date.now();
-            if (currentTime - lastAdTime > 65000) {
-                showAd();
-                lastAdTime = currentTime;
+			//console.log('currentTime - lastAdTime', currentTime - lastAdTime)
+            if (currentTime - lastAdTime > adCooldown) {
+                adReady = true;
             }
         }
 
@@ -706,10 +737,30 @@
         }
 
         function showComboAlert(text) {
+			if (adReady) {
+				adReady = false;
+				showComboAlertAd(text);
+				return;			
+			}
             const alert = document.getElementById('combo-alert');
             alert.textContent = text;
             alert.style.display = 'block';
             setTimeout(() => alert.style.display = 'none', 2500);
+        }
+
+        function showComboAlertAd(text) {
+            const alert = document.getElementById('combo-alert-ad');
+			const textContentRaw = text;
+            alert.textContent = textContentRaw + "! Реклама через 2 секунды...";
+            alert.style.display = 'block';
+			adActive = true;
+            setTimeout(() => alert.textContent = textContentRaw + "! Реклама через 1 секунду...", 1000);
+            setTimeout(() => {
+				alert.style.display = 'none';
+				adActive = false;
+				lastAdTime = Date.now();
+				showAd();
+			}, 2000);
         }
 
         function updateScore() {
@@ -736,7 +787,9 @@
                 : 'Максимум карт';
         }
 
-        function upgradeMaxCards() {            
+        function upgradeMaxCards() {  
+			if (adActive) return;
+			
             const currentLevel = maxCards - 2; // Индекс в массиве цен
             if (currentLevel >= maxCardCosts.length) {
                 showComboAlert("Достигнут максимальный уровень карт!");
@@ -758,6 +811,8 @@
         }
 
         function upgradeSuit(suit) {
+			if (adActive) return;
+			
             const currentLevel = suitBonuses[suit];
             if (currentLevel >= suitUpgradeCosts.length) {
                 showComboAlert(`Масть ${suit} уже усилена до максимального уровня!`);
@@ -847,6 +902,9 @@
 
         function showAd() {
             if (!yg) return;
+			adReady = false;
+			adActive = false;
+            lastAdTime = Date.now();
             yg.adv.showFullscreenAdv({
                 callbacks: {
                     onOpen: () => console.log("Реклама открыта"),
