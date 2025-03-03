@@ -48,7 +48,7 @@
             position: relative;
             z-index: 1;
             margin: 20px auto;
-            max-width: 600px;
+            max-width: 650px;
         }
 
         .card {
@@ -426,7 +426,7 @@
 
         let adCooldown = 65000;
         let lastAdTime = 0;
-        let adReady = false;
+        let adReady = true;
         let adActive = false;
 		
         async function init() {
@@ -464,6 +464,44 @@
             if (currentTime - lastAdTime > adCooldown) {
                 adReady = true;
             }
+        }
+
+        function showComboAlert(text) {
+            if (adReady) {
+                adReady = false;
+                showComboAlertAd(text);
+                return;
+            }
+
+            const alert = document.getElementById('combo-alert');
+
+            if(comboTimeout) {
+                clearTimeout(comboTimeout);
+                comboTimeout = null;
+            }
+
+            alert.textContent = text;
+            alert.style.display = 'block';
+
+            comboTimeout = setTimeout(() => {
+                alert.style.display = 'none';
+                comboTimeout = null;
+            }, 2000);
+        }
+
+        function showComboAlertAd(text) {
+            const alert = document.getElementById('combo-alert-ad');
+            const textContentRaw = text;
+            alert.textContent = textContentRaw + "! Реклама через 2 секунды...";
+            alert.style.display = 'block';
+            adActive = true;
+            setTimeout(() => alert.textContent = textContentRaw + "! Реклама через 1 секунду...", 1000);
+            setTimeout(() => {
+                alert.style.display = 'none';
+                adActive = false;
+                lastAdTime = Date.now();
+                showAd();
+            }, 2000);
         }
 
         function checkBestCombination() {
@@ -544,7 +582,7 @@
                     const bonusElement = document.getElementById(`bonus-${index}`);
                     if(bonusElement) bonusElement.style.display = 'none';
                 });
-            }, 2500);
+            }, 1500);
         }
 
         function highlightCards(indices) {
@@ -675,44 +713,6 @@
                 acc[c.rank] = (acc[c.rank] || 0) + 1;
                 return acc;
             }, {});
-        }
-
-        function showComboAlert(text) {
-			if (adReady) {
-				adReady = false;
-				showComboAlertAd(text);
-				return;			
-			}
-
-            const alert = document.getElementById('combo-alert');
-
-            if(comboTimeout) {
-                clearTimeout(comboTimeout);
-                comboTimeout = null;
-            }
-
-            alert.textContent = text;
-            alert.style.display = 'block';
-
-            comboTimeout = setTimeout(() => {
-                alert.style.display = 'none';
-                comboTimeout = null;
-            }, 2500);
-        }
-
-        function showComboAlertAd(text) {
-            const alert = document.getElementById('combo-alert-ad');
-			const textContentRaw = text;
-            alert.textContent = textContentRaw + "! Реклама через 2 секунды...";
-            alert.style.display = 'block';
-			adActive = true;
-            setTimeout(() => alert.textContent = textContentRaw + "! Реклама через 1 секунду...", 1000);
-            setTimeout(() => {
-				alert.style.display = 'none';
-				adActive = false;
-				lastAdTime = Date.now();
-				showAd();
-			}, 2000);
         }
 
         async function showRewardedVideo() {
@@ -914,8 +914,8 @@
         }
 
         function showAd() {
+            adReady = false;
             if (!yg) return;
-			adReady = false;
 			adActive = false;
             lastAdTime = Date.now();
             yg.adv.showFullscreenAdv({
