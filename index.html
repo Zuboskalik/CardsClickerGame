@@ -403,9 +403,77 @@
     <button id="rewarded-video" onclick="showRewardedVideo()">Посмотреть видео, получить награду</button>
 
     <script src="https://yandex.ru/games/sdk/v2"></script>
-   
+
     <script>
-        const clickMessages = ["Еще!", "Вперед!", "Мощь!", "Крути!", "Давай!", "Ты сможешь!", "Сила!", "Бей!"];
+        const locales = {
+            en: {
+                level: "Level: ",
+                score: "Score: ",
+                clickButton: "Click!",
+                maxCards: "Max cards: ",
+                upgradeButton: "Upgrade (",
+                suitUpgrade: "Enhance (",
+                maxLevel: "MAX",
+                rewardedButton1: "Watch video, get ",
+                rewardedButton2: " points",
+                combinations: {
+                    pair: "Pair",
+                    twoPairs: "Two Pairs",
+                    three: "Three of a Kind",
+                    straight: "Straight",
+                    flush: "Flush",
+                    fullHouse: "Full House",
+                    four: "Four of a Kind",
+                    straightFlush: "Straight Flush",
+                    royalFlush: "Royal Flush"
+                },
+                messages: {
+                    needPoints: "Need ",
+                    points: " points for upgrade!",
+                    maxCardsReached: "Max cards reached!",
+                    maxSuitReached1: "Suit ",
+                    maxSuitReached2: " already at max level!",
+                    adReady2: "Ad ready in 2...",
+                    adReady1: "Ad ready in 1..."
+                },
+                clickMessages: ["More!", "Forward!", "Power!", "Spin!", "Come on!", "You can do it!", "Strength!", "Hit!"]
+            },
+            ru: {
+                level: "Уровень: ",
+                score: "Очки: ",
+                clickButton: "Клик!",
+                maxCards: "Максимум карт: ",
+                upgradeButton: "Улучшить (",
+                suitUpgrade: "Усилить (",
+                maxLevel: "МАКС",
+                rewardedButton1: "Посмотреть видео, получить ",
+                rewardedButton2: " очков",
+                combinations: {
+                    pair: "Пара",
+                    twoPairs: "Две пары",
+                    three: "Сет",
+                    straight: "Стрит",
+                    flush: "Флеш",
+                    fullHouse: "Фулл-хаус",
+                    four: "Каре",
+                    straightFlush: "Стрит-флеш",
+                    royalFlush: "Роял-флеш"
+                },
+                messages: {
+                    needPoints: "Нужно ",
+                    points: " очков для улучшения!",
+                    maxCardsReached: "Достигнут максимум карт!",
+                    maxSuitReached1: "Масть ",
+                    maxSuitReached2: " уже усилена до максимального уровня!",
+                    adReady2: "Реклама через 2 секунды...",
+                    adReady1: "Реклама через 1 секунду..."
+                },
+                clickMessages: ["Еще!", "Вперед!", "Мощь!", "Крути!", "Давай!", "Ты сможешь!", "Сила!", "Бей!"]
+            }
+        };
+
+        let currentLang = 'ru'; // По умолчанию
+
         let score = 0;
         let maxCards = 2;
         let cards = [];
@@ -428,14 +496,32 @@
         let lastAdTime = 0;
         let adReady = true;
         let adActive = false;
-		
+
         async function init() {
-			yg = await YaGames.init();
-			await yg.features.LoadingAPI?.ready();
+            yg = await YaGames.init();
+            await yg.features.LoadingAPI?.ready();
+
+            currentLang = yg.environment.i18n?.lang?.startsWith('en') ? 'en' : 'ru';
+
             showAd();
             await loadProgress();
             updateUpgrades();
             updateGameState();
+            applyTranslations(); // Новая функция для перевода
+        }
+
+        function applyTranslations() {
+            // Основные элементы
+            document.getElementById('click-button').textContent = locales[currentLang].clickButton;
+            document.getElementById('rewarded-video').textContent = locales[currentLang].rewardedButton1 + `25` + locales[currentLang].rewardedButton2;
+            document.querySelector('title').textContent = currentLang === 'ru'
+                ? 'Карточный Кликер'
+                : 'Card Clicker';
+
+            // Обновляем динамические элементы
+            updateScore();
+            updateMaxCardsDisplay();
+            updateUpgrades();
         }
 
         function generateCard() {		
@@ -444,7 +530,7 @@
             const btn = document.getElementById('click-button');
             btn.style.animation = 'pulse 0.3s';
             setTimeout(() => btn.style.animation = '', 300);
-            btn.textContent = clickMessages[Math.floor(Math.random() * clickMessages.length)];
+            btn.textContent = locales[currentLang].clickMessages[Math.floor(Math.random() * locales[currentLang].clickMessages.length)];
 
             const suit = suits[Math.floor(Math.random() * suits.length)];
             const rank = ranks[Math.floor(Math.random() * ranks.length)];
@@ -492,10 +578,10 @@
         function showComboAlertAd(text) {
             const alert = document.getElementById('combo-alert-ad');
             const textContentRaw = text;
-            alert.textContent = textContentRaw + "! Реклама через 2 секунды...";
+            alert.textContent = textContentRaw + "! " + locales[currentLang].messages.adReady2;
             alert.style.display = 'block';
             adActive = true;
-            setTimeout(() => alert.textContent = textContentRaw + "! Реклама через 1 секунду...", 1000);
+            setTimeout(() => alert.textContent = textContentRaw + "! " + locales[currentLang].messages.adReady1, 1000);
             setTimeout(() => {
                 alert.style.display = 'none';
                 adActive = false;
@@ -521,8 +607,8 @@
                 if (cards.length >= minCards) {
                     const combo = check();
                     if (combo) {
-                        const [indices, comboName] = combo;
-                        const baseBonus = getBaseBonus(comboName);
+                        const [indices, comboKey] = combo;
+                        const baseBonus = getBaseBonus(comboKey);
                         const cardValues = indices.map(i => getCardValue(cards[i]));
                         const suitBonus = calculateSuitBonus(indices);
                         
@@ -530,7 +616,8 @@
                         score += totalBonus;
                         
                         highlightCards(indices);
-                        showComboAlert(`${comboName}! +${totalBonus.toLocaleString()} очков`);
+                        const comboName = locales[currentLang].combinations[comboKey];
+                        showComboAlert(`${comboName}! +${totalBonus.toLocaleString()} ${locales[currentLang].messages.points}`);
                         showCardBonuses(indices, cardValues);
                         updateScore();
                         saveProgress();
@@ -540,19 +627,20 @@
             }
         }
 
-        function getBaseBonus(comboName) {
+        function getBaseBonus(comboIndex) {
             const baseBonuses = {
-                'Пара': 5,
-                'Две пары': 10,
-                'Сет': 15,
-                'Стрит': 25,
-                'Флеш': 50,
-                'Фулл-хаус': 100,
-                'Каре': 200,
-                'Стрит-флеш': 500,
-                'Роял-флеш': 1000
+                pair: 5,
+                twoPairs: 10,
+                three: 15,
+                straight: 25,
+                flush: 50,
+                fullHouse: 100,
+                four: 200,
+                straightFlush: 500,
+                royalFlush: 1000,
             };
-            return baseBonuses[comboName] || 0;
+
+            return baseBonuses[comboIndex] || 0;
         }
 
         function getCardValue(card) {
@@ -604,7 +692,7 @@
             const royalRanks = ['10', 'J', 'Q', 'K', 'A'];
             if (royalRanks.every(r => cards.map(c => c.rank).includes(r)) && 
                 cards.every(c => c.suit === cards[0].suit)) {
-                return [Array.from({length:5}, (_,i)=>i), 'Роял-флеш'];
+                return [Array.from({length:5}, (_,i)=>i), 'royalFlush'];
             }
             return null;
         }
@@ -614,7 +702,7 @@
             const straight = checkStraight();
             const flush = checkFlush();
             if (straight && flush) {
-                return [straight[0], 'Стрит-флеш'];
+                return [straight[0], 'straightFlush'];
             }
             return null;
         }
@@ -625,7 +713,7 @@
             const quadRank = Object.keys(counts).find(r => counts[r] >= 4);
             if (quadRank) {
                 const indices = cards.map((c, i) => c.rank === quadRank ? i : -1).filter(i => i !== -1);
-                return [indices, 'Каре'];
+                return [indices, 'four'];
             }
             return null;
         }
@@ -638,14 +726,14 @@
             if (three && pair) {
                 const threeIndices = cards.map((c, i) => c.rank === three ? i : -1).filter(i => i !== -1);
                 const pairIndices = cards.map((c, i) => c.rank === pair ? i : -1).filter(i => i !== -1);
-                return [[...threeIndices, ...pairIndices], 'Фулл-хаус'];
+                return [[...threeIndices, ...pairIndices], 'fullHouse'];
             }
             return null;
         }
 
         function checkFlush() {
             if (cards.every(c => c.suit === cards[0].suit)) {
-                return [Array.from({length: cards.length}, (_,i)=>i), 'Флеш'];
+                return [Array.from({length: cards.length}, (_,i)=>i), 'flush'];
             }
             return null;
         }
@@ -671,7 +759,7 @@
             }
 
             if (isStraight) {
-                return [Array.from({length: cards.length}, (_,i)=>i), 'Стрит'];
+                return [Array.from({length: cards.length}, (_,i)=>i), 'straight'];
             }
             return null;
         }
@@ -681,7 +769,7 @@
             const threeRank = Object.keys(counts).find(r => counts[r] >= 3);
             if (threeRank) {
                 const indices = cards.map((c, i) => c.rank === threeRank ? i : -1).filter(i => i !== -1);
-                return [indices, 'Сет'];
+                return [indices, 'three'];
             }
             return null;
         }
@@ -693,7 +781,7 @@
                 const indices = pairs.flatMap(r => 
                     cards.map((c, i) => c.rank === r ? i : -1).filter(i => i !== -1)
                 );
-                return [indices, 'Две пары'];
+                return [indices, 'twoPairs'];
             }
             return null;
         }
@@ -703,7 +791,7 @@
             const pairRank = Object.keys(counts).find(r => counts[r] >= 2);
             if (pairRank) {
                 const indices = cards.map((c, i) => c.rank === pairRank ? i : -1).filter(i => i !== -1);
-                return [indices, 'Пара'];
+                return [indices, 'pair'];
             }
             return null;
         }
@@ -729,7 +817,7 @@
                             score += rewardedBonus;
                             updateScore();
                             saveProgress();
-                            showComboAlert(`+${rewardedBonus} очков!`);
+                            showComboAlert(`+${rewardedBonus} ` + locales[currentLang].rewardedButton2 + `!`);
                             rewardedAvailable = false;
                             updateRewardedButton();
                             setTimeout(() => {
@@ -742,16 +830,18 @@
                 });
             } catch (error) {
                 console.error("Ошибка инициализации Rewarded:", error);
-                showComboAlert("Реклама временно недоступна");
+                //showComboAlert("Реклама временно недоступна");
             }
         }
 
         function updateScore() {
-            document.getElementById('score').textContent = `Очки: ${score.toLocaleString()}`;
+            document.getElementById('score').textContent =
+                locales[currentLang].score + score.toLocaleString();
         }
 
         function updateMaxCardsDisplay() {
-            document.getElementById('max-cards').textContent = `Максимум карт: ${maxCards}`;
+            document.getElementById('max-cards').textContent =
+                locales[currentLang].maxCards + maxCards;
         }
 
         function updateUpgrades() {
@@ -773,7 +863,7 @@
             rewardedBonus = Math.ceil(nextLevelCost * 0.1);
 
             const rewardButton = document.getElementById('rewarded-video');
-            rewardButton.textContent = `Посмотреть видео, получить ${rewardedBonus} очков`;
+            rewardButton.textContent = locales[currentLang].rewardedButton1 + `${rewardedBonus}` + locales[currentLang].rewardedButton2;
             rewardButton.hidden = !yg || !rewardedAvailable || nextLevelCost === 0;
         }
 
@@ -795,17 +885,21 @@
             const upgradeButton = document.getElementById('upgrade');
             const currentLevel = maxCards - 2;
             const cost = maxCardCosts[currentLevel] || Infinity;
-            upgradeButton.textContent = currentLevel < maxCardCosts.length 
-                ? `Улучшить (${cost.toLocaleString()})` 
-                : 'Максимум карт';
+
+            if(currentLevel < maxCardCosts.length) {
+                upgradeButton.textContent =
+                    locales[currentLang].upgradeButton + cost.toLocaleString() + ')';
+            } else {
+                upgradeButton.textContent = locales[currentLang].maxLevel;
+            }
         }
 
         function upgradeMaxCards() {  
 			if (adActive) return;
 			
-            const currentLevel = maxCards - 2; // Индекс в массиве цен
+            const currentLevel = maxCards - 2;
             if (currentLevel >= maxCardCosts.length) {
-                showComboAlert("Достигнут максимальный уровень карт!");
+                showComboAlert(locales[currentLang].messages.maxCardsReached);
                 return;
             }
 
@@ -819,7 +913,7 @@
                 updateScore();
                 saveProgress();
             } else {
-                showComboAlert(`Нужно ${cost.toLocaleString()} очков для улучшения!`);
+                showComboAlert(locales[currentLang].messages.needPoints + `${cost.toLocaleString()}` + locales[currentLang].messages.points);
             }
         }
 
@@ -828,7 +922,7 @@
 			
             const currentLevel = suitBonuses[suit];
             if (currentLevel >= suitUpgradeCosts.length) {
-                showComboAlert(`Масть ${suit} уже усилена до максимального уровня!`);
+                showComboAlert(locales[currentLang].messages.maxSuitReached1 + `${suit}` + locales[currentLang].messages.maxSuitReached2);
                 return;
             }
 
@@ -848,7 +942,12 @@
                     setTimeout(() => btn.style.animation = '', 500);
                 }
             } else {
-                showComboAlert(`Нужно ${cost.toLocaleString()} очков для усиления масти ${suit}!`);
+                showComboAlert(
+                    locales[currentLang].messages.needPoints +
+                    cost.toLocaleString() +
+                    locales[currentLang].messages.points +
+                    ` ${suit}!`
+                );
             }
         }
 
@@ -857,9 +956,13 @@
                 const btn = document.querySelector(`button.suit-upgrade[data-suit="${suit}"]`);
                 const currentLevel = suitBonuses[suit];
                 const cost = suitUpgradeCosts[currentLevel] || Infinity;
-                btn.textContent = currentLevel < suitUpgradeCosts.length 
-                    ? `${suit} Усилить (${cost.toLocaleString()})`
-                    : `${suit} Максимальный уровень`;
+
+                if(currentLevel < suitUpgradeCosts.length) {
+                    btn.textContent =
+                        `${suit} ${locales[currentLang].suitUpgrade}${cost.toLocaleString()})`;
+                } else {
+                    btn.textContent = `${suit} ${locales[currentLang].maxLevel}`;
+                }
             });
         }
 
@@ -867,7 +970,7 @@
             suits.forEach(suit => {
                 const element = document.getElementById(`bonus-${suit}`);
                 if(element) {
-                    element.textContent = `${suit} Уровень: ${suitBonuses[suit]}`;
+                    element.textContent = `${suit} ` + locales[currentLang].level + `${suitBonuses[suit]}`;
                 }
             });
         }
