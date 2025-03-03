@@ -411,7 +411,7 @@
         let cards = [];
         const suits = ['♠', '♥', '♦', '♣'];
         const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-		
+
         let yg;
 			
         let suitBonuses = {'♠':0, '♥':0, '♦':0, '♣':0};
@@ -422,6 +422,8 @@
         let rewardedBonus = 0;
         let rewardedAvailable = true;
 
+        let comboTimeout = null;
+
         let adCooldown = 65000;
         let lastAdTime = 0;
         let adReady = false;
@@ -430,57 +432,10 @@
         async function init() {
 			yg = await YaGames.init();
 			await yg.features.LoadingAPI?.ready();
-            loadProgress();
+            showAd();
+            await loadProgress();
             updateUpgrades();
             updateGameState();
-			showAd();
-        }
-            
-		function updateGameState() {
-			updateCardsDisplay();
-			updateScore();
-			updateRewardedButton();
-		}
-
-        function updateRewardedButton() {
-            const currentLevel = maxCards - 2;
-            const nextLevelCost = maxCardCosts[currentLevel] || 0;
-            rewardedBonus = Math.ceil(nextLevelCost * 0.1);
-            
-            const rewardButton = document.getElementById('rewarded-video');
-            rewardButton.textContent = `Посмотреть видео, получить ${rewardedBonus} очков`;
-            rewardButton.hidden = !yg || !rewardedAvailable || nextLevelCost === 0;
-        }
-
-        async function showRewardedVideo() {
-			if (adActive) return;
-			
-            if (!yg || !rewardedAvailable) return;
-
-            try {
-                const rewarded = await yg.adv.showRewardedVideo({
-                    callbacks: {
-                        onOpen: () => console.log("Rewarded открыт"),
-                        onClose: () => console.log("Rewarded закрыт"),
-                        onRewarded: () => {
-							score += rewardedBonus;
-							updateScore();
-							saveProgress();
-							showComboAlert(`+${rewardedBonus} очков!`);
-                            rewardedAvailable = false;
-                            updateRewardedButton();
-                            setTimeout(() => {
-                                rewardedAvailable = true;
-                                updateRewardedButton();
-                            }, 30000);
-                        },
-                        onError: (error) => console.error("Ошибка Rewarded:", error)
-                    }
-                });
-            } catch (error) {
-                console.error("Ошибка инициализации Rewarded:", error);
-                showComboAlert("Реклама временно недоступна");
-            }
         }
 
         function generateCard() {		
@@ -509,20 +464,6 @@
             if (currentTime - lastAdTime > adCooldown) {
                 adReady = true;
             }
-        }
-
-        function updateCardsDisplay() {
-            const container = document.getElementById('cards-container');
-            container.innerHTML = cards.map((c, i) => 
-                `<div class="card ${['♥', '♦'].includes(c.suit) ? 'red' : 'black'}" data-index="${i}">
-                    <div class="card-content">
-                        <span class="rank top">${c.rank}</span>
-                        <span class="suit">${c.suit}</span>
-                        <span class="rank bottom">${c.rank}</span>
-                    </div>
-                    <div class="card-bonus" id="bonus-${i}"></div>
-                </div>`
-            ).join('');
         }
 
         function checkBestCombination() {
@@ -742,10 +683,21 @@
 				showComboAlertAd(text);
 				return;			
 			}
+
             const alert = document.getElementById('combo-alert');
+
+            if(comboTimeout) {
+                clearTimeout(comboTimeout);
+                comboTimeout = null;
+            }
+
             alert.textContent = text;
             alert.style.display = 'block';
-            setTimeout(() => alert.style.display = 'none', 2500);
+
+            comboTimeout = setTimeout(() => {
+                alert.style.display = 'none';
+                comboTimeout = null;
+            }, 2500);
         }
 
         function showComboAlertAd(text) {
@@ -763,6 +715,37 @@
 			}, 2000);
         }
 
+        async function showRewardedVideo() {
+            if (adActive) return;
+
+            if (!yg || !rewardedAvailable) return;
+
+            try {
+                const rewarded = await yg.adv.showRewardedVideo({
+                    callbacks: {
+                        onOpen: () => console.log("Rewarded открыт"),
+                        onClose: () => console.log("Rewarded закрыт"),
+                        onRewarded: () => {
+                            score += rewardedBonus;
+                            updateScore();
+                            saveProgress();
+                            showComboAlert(`+${rewardedBonus} очков!`);
+                            rewardedAvailable = false;
+                            updateRewardedButton();
+                            setTimeout(() => {
+                                rewardedAvailable = true;
+                                updateRewardedButton();
+                            }, 30000);
+                        },
+                        onError: (error) => console.error("Ошибка Rewarded:", error)
+                    }
+                });
+            } catch (error) {
+                console.error("Ошибка инициализации Rewarded:", error);
+                showComboAlert("Реклама временно недоступна");
+            }
+        }
+
         function updateScore() {
             document.getElementById('score').textContent = `Очки: ${score.toLocaleString()}`;
         }
@@ -776,6 +759,36 @@
             updateSuitButtons();
             updateSuitBonusDisplays();
             updateRewardedButton();
+        }
+
+        function updateGameState() {
+            updateCardsDisplay();
+            updateScore();
+            updateRewardedButton();
+        }
+
+        function updateRewardedButton() {
+            const currentLevel = maxCards - 2;
+            const nextLevelCost = maxCardCosts[currentLevel] || 0;
+            rewardedBonus = Math.ceil(nextLevelCost * 0.1);
+
+            const rewardButton = document.getElementById('rewarded-video');
+            rewardButton.textContent = `Посмотреть видео, получить ${rewardedBonus} очков`;
+            rewardButton.hidden = !yg || !rewardedAvailable || nextLevelCost === 0;
+        }
+
+        function updateCardsDisplay() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = cards.map((c, i) =>
+                `<div class="card ${['♥', '♦'].includes(c.suit) ? 'red' : 'black'}" data-index="${i}">
+                    <div class="card-content">
+                        <span class="rank top">${c.rank}</span>
+                        <span class="suit">${c.suit}</span>
+                        <span class="rank bottom">${c.rank}</span>
+                    </div>
+                    <div class="card-bonus" id="bonus-${i}"></div>
+                </div>`
+            ).join('');
         }
 
         function updateMaxCardsButton() {
