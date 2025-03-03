@@ -429,7 +429,8 @@
                 },
                 messages: {
                     needPoints: "Need ",
-                    points: " points for upgrade!",
+                    points: " points for upgrading",
+                    pointsMaxCards: "cards maximum",
                     maxCardsReached: "Max cards reached!",
                     maxSuitReached1: "Suit ",
                     maxSuitReached2: " already at max level!",
@@ -461,7 +462,8 @@
                 },
                 messages: {
                     needPoints: "Нужно ",
-                    points: " очков для улучшения!",
+                    points: " очков для улучшения",
+                    pointsMaxCards: "максимума карт",
                     maxCardsReached: "Достигнут максимум карт!",
                     maxSuitReached1: "Масть ",
                     maxSuitReached2: " уже усилена до максимального уровня!",
@@ -617,7 +619,7 @@
                         
                         highlightCards(indices);
                         const comboName = locales[currentLang].combinations[comboKey];
-                        showComboAlert(`${comboName}! +${totalBonus.toLocaleString()} ${locales[currentLang].messages.points}`);
+                        showComboAlert(`${comboName}! +${totalBonus.toLocaleString()} ${locales[currentLang].rewardedButton2}`);
                         showCardBonuses(indices, cardValues);
                         updateScore();
                         saveProgress();
@@ -913,7 +915,7 @@
                 updateScore();
                 saveProgress();
             } else {
-                showComboAlert(locales[currentLang].messages.needPoints + `${cost.toLocaleString()}` + locales[currentLang].messages.points);
+                showComboAlert(locales[currentLang].messages.needPoints + `${cost.toLocaleString()}` + locales[currentLang].messages.points + ` ` + locales[currentLang].messages.pointsMaxCards + `!`);
             }
         }
 
