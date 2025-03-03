@@ -496,31 +496,29 @@
 
         let adCooldown = 65000;
         let lastAdTime = 0;
-        let adReady = true;
+        let adReady = false;
         let adActive = false;
 
         async function init() {
             yg = await YaGames.init();
             await yg.features.LoadingAPI?.ready();
+            showAd();
 
             currentLang = yg.environment.i18n?.lang?.startsWith('en') ? 'en' : 'ru';
 
-            showAd();
             await loadProgress();
             updateUpgrades();
             updateGameState();
-            applyTranslations(); // Новая функция для перевода
+            applyTranslations();
         }
 
         function applyTranslations() {
-            // Основные элементы
             document.getElementById('click-button').textContent = locales[currentLang].clickButton;
             document.getElementById('rewarded-video').textContent = locales[currentLang].rewardedButton1 + `25` + locales[currentLang].rewardedButton2;
             document.querySelector('title').textContent = currentLang === 'ru'
                 ? 'Карточный Кликер'
                 : 'Card Clicker';
 
-            // Обновляем динамические элементы
             updateScore();
             updateMaxCardsDisplay();
             updateUpgrades();
@@ -1020,8 +1018,8 @@
 
         function showAd() {
             adReady = false;
-            if (!yg) return;
 			adActive = false;
+            if (!yg) return;
             lastAdTime = Date.now();
             yg.adv.showFullscreenAdv({
                 callbacks: {
