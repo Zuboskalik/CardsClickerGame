@@ -400,7 +400,7 @@
         </div>
     </div>
 
-    <button id="rewarded-video" onclick="showRewardedVideo()">Посмотреть видео, получить награду</button>
+    <button id="rewarded-video" onclick="showRewardedVideo()" hidden>Посмотреть видео, получить награду</button>
 
     <script src="https://yandex.ru/games/sdk/v2"></script>
 
@@ -474,7 +474,7 @@
             }
         };
 
-        let currentLang = 'ru'; // По умолчанию
+        let currentLang = 'en'; // По умолчанию
 
         let score = 0;
         let maxCards = 2;
@@ -500,16 +500,16 @@
         let adActive = false;
 
         async function init() {
-            yg = await YaGames.init();
-            await yg.features.LoadingAPI?.ready();
-            showAd();
+            applyTranslations();
+            //yg = await YaGames.init();
+            //await yg.features.LoadingAPI?.ready();
+            //showAd();
 
-            currentLang = yg.environment.i18n?.lang?.startsWith('en') ? 'en' : 'ru';
+            //currentLang = yg.environment.i18n?.lang?.startsWith('en') ? 'en' : 'ru';
 
             await loadProgress();
             updateUpgrades();
             updateGameState();
-            applyTranslations();
         }
 
         function applyTranslations() {
@@ -525,7 +525,7 @@
         }
 
         function generateCard() {		
-			if (adActive) return;
+			//if (adActive) return;
 			
             const btn = document.getElementById('click-button');
             btn.style.animation = 'pulse 0.3s';
@@ -553,11 +553,11 @@
         }
 
         function showComboAlert(text) {
-            if (adReady) {
+            /*if (adReady) {
                 adReady = false;
                 showComboAlertAd(text);
                 return;
-            }
+            }*/
 
             const alert = document.getElementById('combo-alert');
 
@@ -863,8 +863,10 @@
             rewardedBonus = Math.ceil(nextLevelCost * 0.1);
 
             const rewardButton = document.getElementById('rewarded-video');
+            rewardButton.hidden = true;
+            return;
             rewardButton.textContent = locales[currentLang].rewardedButton1 + `${rewardedBonus}` + locales[currentLang].rewardedButton2;
-            rewardButton.hidden = !yg || !rewardedAvailable || nextLevelCost === 0;
+            rewardButton.hidden = !rewardedAvailable || nextLevelCost === 0;
         }
 
         function updateCardsDisplay() {
@@ -977,18 +979,12 @@
 
         async function loadProgress() {
             try {
-                if (!yg) return;
-                const storage = await yg.getStorage();
-                const savedData = await Promise.all([
-                    storage.getItem('score'),
-                    storage.getItem('maxCards'),
-                    storage.getItem('suitBonuses')
-                ]);
+                score = parseInt(localStorage.getItem('score')) || 0;
+                maxCards = parseInt(localStorage.getItem('maxCards')) || 2;
 
-                score = savedData[0] ? parseInt(savedData[0]) : 0;
-                maxCards = savedData[1] ? parseInt(savedData[1]) : 2;
-                if(savedData[2]) {
-                    const parsedBonuses = JSON.parse(savedData[2]);
+                const savedBonuses = localStorage.getItem('suitBonuses');
+                if(savedBonuses) {
+                    const parsedBonuses = JSON.parse(savedBonuses);
                     suits.forEach(s => {
                         suitBonuses[s] = parsedBonuses[s] || 0;
                     });
@@ -999,27 +995,25 @@
                 updateScore();
             } catch (error) {
                 console.error("Ошибка загрузки:", error);
-                //showComboAlert("Ошибка данных!");
             }
         }
 
         async function saveProgress() {
             try {
-                if (!yg) return;
-                const storage = await yg.getStorage();
-                await storage.setItem('score', score.toString());
-                await storage.setItem('maxCards', maxCards.toString());
-                await storage.setItem('suitBonuses', JSON.stringify(suitBonuses));
+                localStorage.setItem('score', score.toString());
+                localStorage.setItem('maxCards', maxCards.toString());
+                localStorage.setItem('suitBonuses', JSON.stringify(suitBonuses));
             } catch (error) {
                 console.error("Ошибка сохранения прогресса:", error);
-                //showComboAlert("Ошибка сохранения прогресса!");
             }
         }
 
         function showAd() {
+            return;
+
             adReady = false;
 			adActive = false;
-            if (!yg) return;
+            //if (!yg) return;
             lastAdTime = Date.now();
             yg.adv.showFullscreenAdv({
                 callbacks: {
