@@ -483,6 +483,7 @@
         const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 
         let yg;
+		let lb;
 			
         let suitBonuses = {'♠':0, '♥':0, '♦':0, '♣':0};
 		
@@ -501,6 +502,7 @@
 
         async function init() {
             yg = await YaGames.init();
+			yg.getLeaderboards().then(_lb => lb = _lb);
             await yg.features.LoadingAPI?.ready();
             showAd();
 
@@ -620,6 +622,7 @@
                         showComboAlert(`${comboName}! +${totalBonus.toLocaleString()} ${locales[currentLang].rewardedButton2}`);
                         showCardBonuses(indices, cardValues);
                         updateScore();
+						yg.getLeaderboards().then(lb => {lb.setLeaderboardScore('leaderboardPokerNew', score);});
                         saveProgress();
                         return;
                     }
