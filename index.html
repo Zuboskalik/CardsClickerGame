@@ -545,14 +545,6 @@
         let adReady = false;
         let adActive = false;
 
-        const eventParams = { passive: false };
-        document.body.addEventListener('touchcancel', ignore, eventParams);
-        document.body.addEventListener('touchend', ignore, eventParams);
-
-        function ignore(e) {
-            e.preventDefault();
-        }
-
         async function init() {
             document.getElementById('loading-screen').textContent = locales[currentLang].loading;
             document.getElementById('loading-screen').style.display = 'flex';
