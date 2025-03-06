@@ -314,7 +314,7 @@
             }
 
             .card {
-                width: 60px;
+                max-width: 60px;
                 height: 85px;
                 font-size: 16px;
                 margin: 8px 5px;
@@ -480,7 +480,7 @@
                     adReady2: "Ad ready in 2...",
                     adReady1: "Ad ready in 1..."
                 },
-                clickMessages: ["More!", "Forward!", "Power!", "Spin!", "Come on!", "You can do it!", "Strength!", "Hit!"]
+                clickMessages: ["Tap!", "Faster!", "Points!", "Go goal!", "Nice!", "Rush!", "Grind!", "Click-click!", "Turbo!", "Spark!", "Bonus!", "Epic!", "You did it!", "More!", "Forward!", "Power!", "Come on!", "You can do it!", "Strength!", "Hit!"]
             },
             ru: {
                 level: "Уровень: ",
@@ -515,7 +515,7 @@
                     adReady2: "Реклама через 2 секунды...",
                     adReady1: "Реклама через 1 секунду..."
                 },
-                clickMessages: ["Еще!", "Вперед!", "Мощь!", "Крути!", "Давай!", "Ты сможешь!", "Сила!", "Бей!"]
+                clickMessages: ["Жми!", "Жми быстрее!", "Очки!", "Вперед!", "Молодец!", "Форсаж!", "Разгон!", "Клик-клик!", "Турбо!", "Заряд!", "Фантастика!", "Получается!", "Еще!", "Вперед!", "Мощь!", "Давай!", "Ты сможешь!", "Сила!", "Бей!"]
             }
         };
 
@@ -532,8 +532,8 @@
 			
         let suitBonuses = {'♠':0, '♥':0, '♦':0, '♣':0};
 		
-		const maxCardCosts = [250, 750, 2000, 5000, 12000, 35000];
-        const suitUpgradeCosts = [100, 300, 900, 2500, 7500, 15000, 45000, 120000, 500000];
+		const maxCardCosts = [250, 1250, 7500, 30000, 75000, 125000, 500000, 3000000];
+        const suitUpgradeCosts = [100, 250, 1250, 7500, 30000, 75000, 125000, 500000];
 		
         let rewardedBonus = 0;
         let rewardedAvailable = true;
@@ -897,7 +897,7 @@
 
         function updateMaxCardsDisplay() {
             document.getElementById('max-cards').textContent =
-                locales[currentLang].maxCards + maxCards;
+                locales[currentLang].maxCards + maxCards + "/" + (maxCardCosts.length+2);
         }
 
         function updateUpgrades() {
