@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Карточный Кликер</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
@@ -22,14 +22,18 @@
             min-height: 100vh;
             overflow: hidden;
         }
-		
-		body, button, .card, .combo-alert, .combo-alert-ad {
+
+        body, button, #cards-container, .card, .loading-screen, .combo-alert, .combo-alert-ad {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
             touch-action: manipulation;
-			-webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color: transparent;
+
+            -webkit-touch-callout: none;
+            user-drag: none;
+            overscroll-behavior: contain;
         }
 
         body::before {
@@ -243,7 +247,11 @@
         }
 
         .combo-alert-ad {
-            margin: 20px;
+            position: fixed;
+            top: 5rem;
+            margin: 20px auto;
+            left: 50%;
+            transform: translateX(-50%);
             padding: 15px;
             background: linear-gradient(45deg, #ffff66, #ffcc00);
             color: #333;
@@ -252,6 +260,34 @@
             font-size: 20px;
             text-shadow: 1px 1px 2px white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 1001;
+        }
+
+        .loading-screen, .pause-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(50, 50, 50, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .loading-screen {
+            z-index: 1002;
+        }
+
+        .pause-screen {
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: none;
         }
 		
         /* Мобильная адаптация */
@@ -355,16 +391,17 @@
 				width: 60vw;
                 font-size: 16px;
                 padding: 10px;
+                z-index: 999;
             }
 
             .combo-alert-ad {
-				position: fixed;
-				top: 180px;
-				left: 40%;
-				transform: translateX(-50%);
 				width: 65vw;
                 font-size: 16px;
                 padding: 10px;
+            }
+
+            .loading-screen, .pause-screen {
+                font-size: 24px;
             }
         }
     </style>
@@ -375,8 +412,12 @@
         <div id="score">Очки: 0</div>
         <button id="click-button" onclick="generateCard()">Клик!</button>
         <div id="combo-alert" class="combo-alert"></div>
-        <div id="combo-alert-ad" class="combo-alert-ad"></div>
     </div>
+
+    <div id="combo-alert-ad" class="combo-alert-ad"></div>
+
+    <div id="loading-screen" class="loading-screen">Загрузка...</div>
+    <div id="pause-screen" class="pause-screen">Пауза</div>
     
     <div id="max-cards">Максимум карт: 2</div>
     <button id="upgrade" onclick="upgradeMaxCards()">Улучшить (250)</button>
@@ -416,6 +457,8 @@
                 maxLevel: "MAX",
                 rewardedButton1: "Watch video, get ",
                 rewardedButton2: " points",
+                loading: "Loading...",
+                paused: "Paused",
                 combinations: {
                     pair: "Pair",
                     twoPairs: "Two Pairs",
@@ -449,6 +492,8 @@
                 maxLevel: "МАКС",
                 rewardedButton1: "Посмотреть видео, получить ",
                 rewardedButton2: " очков",
+                loading: "Загрузка...",
+                paused: "Пауза",
                 combinations: {
                     pair: "Пара",
                     twoPairs: "Две пары",
@@ -500,18 +545,31 @@
         let adReady = false;
         let adActive = false;
 
+        const eventParams = { passive: false };
+        document.body.addEventListener('touchcancel', ignore, eventParams);
+        document.body.addEventListener('touchend', ignore, eventParams);
+
+        function ignore(e) {
+            e.preventDefault();
+        }
+
         async function init() {
+            document.getElementById('loading-screen').textContent = locales[currentLang].loading;
+            document.getElementById('loading-screen').style.display = 'flex';
+
             yg = await YaGames.init();
-			yg.getLeaderboards().then(_lb => lb = _lb);
-            await yg.features.LoadingAPI?.ready();
-            showAd();
+            yg.getLeaderboards().then(_lb => lb = _lb);
 
             currentLang = yg.environment.i18n?.lang?.startsWith('en') ? 'en' : 'ru';
+            applyTranslations();
+
+            yg.features.LoadingAPI?.ready();
+            document.getElementById('loading-screen').style.display = 'none';
 
             await loadProgress();
             updateUpgrades();
             updateGameState();
-            applyTranslations();
+            showAd();
         }
 
         function applyTranslations() {
@@ -548,7 +606,6 @@
             saveProgress();
 
             const currentTime = Date.now();
-			//console.log('currentTime - lastAdTime', currentTime - lastAdTime)
             if (currentTime - lastAdTime > adCooldown) {
                 adReady = true;
             }
@@ -579,6 +636,10 @@
 
         function showComboAlertAd(text) {
             const alert = document.getElementById('combo-alert-ad');
+            const pauseScreen = document.getElementById('pause-screen');
+            pauseScreen.textContent = locales[currentLang].paused;
+            pauseScreen.style.display = 'flex';
+
             const textContentRaw = text;
             alert.textContent = textContentRaw + "! " + locales[currentLang].messages.adReady2;
             alert.style.display = 'block';
@@ -1020,6 +1081,7 @@
         }
 
         function showAd() {
+            document.getElementById('pause-screen').style.display = 'none';
             adReady = false;
 			adActive = false;
             if (!yg) return;
