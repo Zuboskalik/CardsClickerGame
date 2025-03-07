@@ -51,14 +51,13 @@
         #game {
             position: relative;
             z-index: 1;
-            margin: 20px auto;
-            max-width: 650px;
+            margin: 100px 160px 20px;
         }
 
         .card {
             display: inline-block;
-            width: 120px;
-            height: 160px;
+            width: 100px;
+            height: 140px;
             background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
             border-radius: 12px;
             margin: 15px;
@@ -165,7 +164,7 @@
         #max-cards {
             position: fixed;
             top: 30px;
-            right: 30px;
+            right: 15px;
             font-size: 24px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
@@ -174,7 +173,7 @@
             font-family: 'Press Start 2P', sans-serif;
             position: fixed;
             top: 80px;
-            right: 30px;
+            right: 15px;
             padding: 12px 25px;
             background: linear-gradient(45deg, #00ff99, #00cc66);
             border: none;
@@ -192,7 +191,7 @@
             font-family: 'Press Start 2P', sans-serif;
             position: fixed;
             top: 140px;
-            right: 30px;
+            right: 15px;
             text-align: right;
         }
 
@@ -532,7 +531,7 @@
 			
         let suitBonuses = {'♠':0, '♥':0, '♦':0, '♣':0};
 		
-		const maxCardCosts = [250, 1250, 7500, 30000, 75000, 125000, 500000, 3000000];
+		const maxCardCosts = [250, 1500, 12500, 50000, 175000, 900000];
         const suitUpgradeCosts = [100, 250, 1250, 7500, 30000, 75000, 125000, 500000];
 		
         let rewardedBonus = 0;
@@ -559,6 +558,7 @@
             document.getElementById('loading-screen').style.display = 'none';
 
             await loadProgress();
+            applyTranslations();
             updateUpgrades();
             updateGameState();
             showAd();
@@ -939,7 +939,11 @@
 
         function updateMaxCardsButton() {
             const upgradeButton = document.getElementById('upgrade');
-            const currentLevel = maxCards - 2;
+            let currentLevel = maxCards - 2;
+            if(currentLevel > maxCardCosts.length) {
+                maxCards = maxCardCosts.length + 2;
+                currentLevel = maxCards - 2;
+            }
             const cost = maxCardCosts[currentLevel] || Infinity;
 
             if(currentLevel < maxCardCosts.length) {
