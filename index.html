@@ -71,13 +71,13 @@
 
         .card.red {
             color: #c8102e;
-            background: linear-gradient(135deg, #ffcccc, #ff6666);
+            /*background: linear-gradient(135deg, #ffcccc, #ff6666);*/
             border: solid 1px #c8102e;
         }
 
         .card.black {
             color: #000000;
-            background: linear-gradient(135deg, #333, #999);
+            /*background: linear-gradient(135deg, #333, #999);*/
             border: solid 1px #000000;
         }
 
@@ -174,10 +174,10 @@
         }
 
         #upgrade {
+            white-space: normal;
+
             font-family: 'Press Start 2P', sans-serif;
             position: fixed;
-            top: 80px;
-            right: 15px;
             padding: 12px 25px;
             background: linear-gradient(45deg, #00ff99, #00cc66);
             border: none;
@@ -189,13 +189,19 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
             margin: 5px 0;
             display: block;
+
+            left: 50%;
+            transform: translateX(-50%);
+            top: 5px;
+            width: 360px;
+            z-index: 10;
         }
 
         #suit-upgrades {
             font-family: 'Press Start 2P', sans-serif;
             position: fixed;
-            top: 140px;
-            right: 15px;
+            top: 5px;
+            right: 5px;
             text-align: right;
         }
 
@@ -305,7 +311,7 @@
         @media (max-width: 960px) {
             body {
                 margin: 0 auto;
-                padding: 0 10px;
+                padding: 0 10px 0 0;
             }
 			
 			body::before {
@@ -314,8 +320,8 @@
 			}
             
             #game {
-				width: 80%;
-				margin: 50px 0;
+				width: calc(100% - 115px);
+				margin: 65px 0;
             }
 			
             #cards-container {
@@ -354,18 +360,14 @@
 
             #upgrade {
 				font-size: 14px;
-				padding: 8px;
-				left: 200px;
-				right: auto;
-				top: 5px;
-				width: 280px;
+                left: calc(50% - 70px);
 				z-index: 10;
             }
 
             #suit-upgrades {
                 position: fixed;
                 top: 2px;
-                right: 10px;
+                right: 5px;
                 text-align: right;
                 display: flex;
                 flex-direction: column;
@@ -375,7 +377,7 @@
             }
 
             .suit-upgrade {
-                width: 100px;
+                width: 115px;
                 padding: 0 8px 4px;
                 font-size: 12px;
 				margin-top: 0;
@@ -394,7 +396,7 @@
 				max-width: 120px;
             }
 
-            .combo-alert {
+            /*.combo-alert {
 				position: fixed;
 				top: 100px;
 				left: 40%;
@@ -403,7 +405,7 @@
                 font-size: 16px;
                 padding: 10px;
                 z-index: 999;
-            }
+            }*/
 
             .combo-alert-ad {
 				width: 65vw;
@@ -421,8 +423,8 @@
     <div id="game">
         <div id="cards-container"></div>
         <div id="score">Очки: 0</div>
-        <button id="click-button" onclick="generateCard()">Клик!</button>
         <div id="combo-alert" class="combo-alert"></div>
+        <button id="click-button" onclick="generateCard()">Клик!</button>
     </div>
 
     <div id="combo-alert-ad" class="combo-alert-ad"></div>
@@ -430,17 +432,17 @@
     <div id="loading-screen" class="loading-screen">Загрузка...</div>
     <div id="pause-screen" class="pause-screen">Пауза</div>
     
-    <div id="max-cards">Максимум карт: 2</div>
+    <!--<div id="max-cards">Максимум карт: 2</div>-->
     <button id="upgrade" onclick="upgradeMaxCards()">Улучшить (250)</button>
     
     <div id="suit-upgrades">
         <div class="suit-upgrade-container">
-            <button class="suit-upgrade" data-suit="♠" onclick="upgradeSuit('♠')">♠ Усилить (50)</button>
-            <div class="suit-bonus" id="bonus-♠">♠ Уровень: 0</div>
-        </div>
-        <div class="suit-upgrade-container">
             <button class="suit-upgrade" data-suit="♥" onclick="upgradeSuit('♥')">♥ Усилить (50)</button>
             <div class="suit-bonus" id="bonus-♥">♥ Уровень: 0</div>
+        </div>
+        <div class="suit-upgrade-container">
+            <button class="suit-upgrade" data-suit="♠" onclick="upgradeSuit('♠')">♠ Усилить (50)</button>
+            <div class="suit-bonus" id="bonus-♠">♠ Уровень: 0</div>
         </div>
         <div class="suit-upgrade-container">
             <button class="suit-upgrade" data-suit="♦" onclick="upgradeSuit('♦')">♦ Усилить (50)</button>
@@ -462,7 +464,7 @@
                 level: "Level: ",
                 score: "Score: ",
                 clickButton: "Click!",
-                maxCards: "Max cards: ",
+                maxCards: "cards",
                 upgradeButton: "Upgrade (",
                 suitUpgrade: "Enhance (",
                 maxLevel: "MAX",
@@ -497,10 +499,10 @@
                 level: "Уровень: ",
                 score: "Очки: ",
                 clickButton: "Клик!",
-                maxCards: "Максимум карт: ",
+                maxCards: "карт",
                 upgradeButton: "Улучшить (",
                 suitUpgrade: "Усилить (",
-                maxLevel: "МАКС",
+                maxLevel: "МАКСИМУМ",
                 rewardedButton1: "Посмотреть видео, получить ",
                 rewardedButton2: " очков",
                 loading: "Загрузка...",
@@ -535,16 +537,16 @@
         let score = 0;
         let maxCards = 2;
         let cards = [];
-        const suits = ['♠', '♥', '♦', '♣'];
+        const suits = ['♥', '♠', '♦', '♣'];
         const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 
         let yg;
 		let lb;
 			
-        let suitBonuses = {'♠':0, '♥':0, '♦':0, '♣':0};
+        let suitBonuses = {'♥':0, '♠':0, '♦':0, '♣':0};
 		
-		const maxCardCosts = [250, 1500, 12500, 50000, 175000, 900000];
-        const suitUpgradeCosts = [100, 250, 1250, 7500, 30000, 75000, 125000, 500000];
+		const maxCardCosts = [250, 1500, 12500, 50000, 175000, 900000, 2500000, 9000001];
+        const suitUpgradeCosts = [100, 250, 1250, 7500, 30000, 75000, 225000, 900000];
 		
         let rewardedBonus = 0;
         let rewardedAvailable = true;
@@ -556,24 +558,76 @@
         let adReady = false;
         let adActive = false;
 
+        document.addEventListener('keydown', (event) => {
+            // Проверяем, доступен ли SDK Яндекса
+            const isYandexDraft = false/*!yg || typeof yg == "undefined" || (yg && yg.environment?.draft == true)*/;
+
+            const currentLevel = maxCards - 2;
+            const nextLevelCost = maxCardCosts[currentLevel] || 10000000;
+
+            // Сброс очков по клавише R
+            if (event.key.toLowerCase() === 'r' && isYandexDraft) {
+                score = 0;
+                updateScore();
+                saveProgress();
+                showComboAlert(locales[currentLang].score + " reset to 0!");
+            }
+            if (event.key.toLowerCase() === 't' && isYandexDraft) {
+                score += nextLevelCost;
+                updateScore();
+                saveProgress();
+                showComboAlert(locales[currentLang].score + " reset to 0!");
+            }
+
+            // Увеличение максимума карт по NumPad +
+            if (event.key === '+' && event.location === KeyboardEvent.DOM_KEY_LOCATION_NUMPAD && isYandexDraft) {
+                if (maxCards < maxCardCosts.length + 2) {
+                    maxCards++;
+                    updateMaxCardsButton();
+                    updateScore();
+                    saveProgress();
+                    showComboAlert(`${locales[currentLang].maxCards} ${maxCards}/${maxCardCosts.length + 2}`);
+                }
+            }
+
+            // Уменьшение максимума карт по NumPad -
+            if (event.key === '-' && event.location === KeyboardEvent.DOM_KEY_LOCATION_NUMPAD && isYandexDraft) {
+                if (maxCards > 2) {
+                    maxCards--;
+                    updateMaxCardsButton();
+                    updateScore();
+                    saveProgress();
+                    showComboAlert(`${locales[currentLang].maxCards} ${maxCards}/${maxCardCosts.length + 2}`);
+                }
+            }
+        });
+
         async function init() {
             document.getElementById('loading-screen').textContent = locales[currentLang].loading;
             document.getElementById('loading-screen').style.display = 'flex';
 
-            yg = await YaGames.init();
-            yg.getLeaderboards().then(_lb => lb = _lb);
+            try {
+                yg = await YaGames.init();
+                yg.getLeaderboards().then(_lb => lb = _lb);
 
-            currentLang = yg.environment.i18n?.lang?.startsWith('en') ? 'en' : 'ru';
-            applyTranslations();
+                currentLang = yg.environment.i18n?.lang?.startsWith('en') ? 'en' : 'ru';
+                applyTranslations();
 
-            yg.features.LoadingAPI?.ready();
-            document.getElementById('loading-screen').style.display = 'none';
+                yg.features.LoadingAPI?.ready();
+                document.getElementById('loading-screen').style.display = 'none';
 
-            await loadProgress();
-            applyTranslations();
+                await loadProgress();
+            } catch (error) {
+                console.warn("Yandex SDK unavailable or failed to initialize:", error);
+                // Если SDK недоступен, все равно запускаем игру
+                currentLang = 'ru'; // Устанавливаем язык по умолчанию
+                applyTranslations();
+                document.getElementById('loading-screen').style.display = 'none';
+            }
+
             updateUpgrades();
             updateGameState();
-            showAd();
+            if (yg) showAd();
         }
 
         function applyTranslations() {
@@ -584,31 +638,46 @@
                 : 'Card Clicker';
 
             updateScore();
-            updateMaxCardsDisplay();
             updateUpgrades();
         }
 
-        function generateCard() {		
-			if (adActive) return;
-			
+        function generateCard() {
+            if (adActive) return;
             const btn = document.getElementById('click-button');
             btn.style.animation = 'pulse 0.3s';
             setTimeout(() => btn.style.animation = '', 300);
             btn.textContent = locales[currentLang].clickMessages[Math.floor(Math.random() * locales[currentLang].clickMessages.length)];
 
-            const suit = suits[Math.floor(Math.random() * suits.length)];
-            const rank = ranks[Math.floor(Math.random() * ranks.length)];
-            
-            cards.push({ suit, rank });
+            // Генерируем список доступных карт (без дубликатов)
+            const availableCards = [];
+            for (const suit of suits) {
+                for (const rank of ranks) {
+                    if (!cards.some(card => card.suit === suit && card.rank === rank)) {
+                        availableCards.push({ suit, rank });
+                    }
+                }
+            }
+
+            if (availableCards.length === 0) {
+                showComboAlert("Нет доступных карт для генерации!");
+                return;
+            }
+
+            // Выбираем случайную доступную карту
+            const randomIndex = Math.floor(Math.random() * availableCards.length);
+            const newCard = availableCards[randomIndex];
+
+            // Добавляем новую карту и удаляем старую, если превышен лимит
+            cards.push(newCard);
             if (cards.length > maxCards) cards.shift();
-            
+
+            // Обновляем интерфейс и логику
             updateCardsDisplay();
-			updateUpgrades();
+            updateUpgrades();
             checkBestCombination();
             score++;
             updateScore();
             saveProgress();
-
             const currentTime = Date.now();
             if (currentTime - lastAdTime > adCooldown) {
                 adReady = true;
@@ -907,11 +976,6 @@
                 locales[currentLang].score + score.toLocaleString();
         }
 
-        function updateMaxCardsDisplay() {
-            document.getElementById('max-cards').textContent =
-                locales[currentLang].maxCards + maxCards + "/" + (maxCardCosts.length+2);
-        }
-
         function updateUpgrades() {
             updateMaxCardsButton();
             updateSuitButtons();
@@ -927,8 +991,8 @@
 
         function updateRewardedButton() {
             const currentLevel = maxCards - 2;
-            const nextLevelCost = maxCardCosts[currentLevel] || 0;
-            rewardedBonus = Math.ceil(nextLevelCost * 0.1);
+            const nextLevelCost = maxCardCosts[currentLevel] || 10000000;
+            rewardedBonus = maxCards > 5 ? Math.ceil(nextLevelCost * 0.05) : Math.ceil(nextLevelCost * 0.1);
 
             const rewardButton = document.getElementById('rewarded-video');
             rewardButton.textContent = locales[currentLang].rewardedButton1 + `${rewardedBonus}` + locales[currentLang].rewardedButton2;
@@ -951,24 +1015,23 @@
 
         function updateMaxCardsButton() {
             const upgradeButton = document.getElementById('upgrade');
-            let currentLevel = maxCards - 2;
-            if(currentLevel > maxCardCosts.length) {
-                maxCards = maxCardCosts.length + 2;
-                currentLevel = maxCards - 2;
-            }
+            const currentLevel = maxCards - 2;
+            const maxLevel = maxCardCosts.length;
             const cost = maxCardCosts[currentLevel] || Infinity;
 
-            if(currentLevel < maxCardCosts.length) {
-                upgradeButton.textContent =
-                    locales[currentLang].upgradeButton + cost.toLocaleString() + ')';
+            if (currentLevel < maxLevel) {
+                upgradeButton.innerHTML = `${locales[currentLang].maxCards}: ${currentLevel + 2}/${maxLevel + 2}<br>${locales[currentLang].upgradeButton}${cost.toLocaleString()})`;
+                const progress = ((currentLevel) / maxLevel) * 100;
+                upgradeButton.style.background = `linear-gradient(45deg, #00ff99 ${progress}%, #6666ff ${progress}%)`;
             } else {
-                upgradeButton.textContent = locales[currentLang].maxLevel;
+                upgradeButton.textContent = locales[currentLang].maxLevel + " " + locales[currentLang].maxCards;
+                upgradeButton.style.background = 'linear-gradient(45deg, #00ff99, #6666ff)';
             }
         }
 
-        function upgradeMaxCards() {  
-			if (adActive) return;
-			
+        function upgradeMaxCards() {
+            if (adActive) return;
+
             const currentLevel = maxCards - 2;
             if (currentLevel >= maxCardCosts.length) {
                 showComboAlert(locales[currentLang].messages.maxCardsReached);
@@ -979,8 +1042,14 @@
             if (score >= cost) {
                 score -= cost;
                 maxCards++;
-                
-                updateMaxCardsDisplay();
+
+                const upgradeButton = document.getElementById('upgrade');
+                upgradeButton.style.animation = 'gradientFill 0.5s forwards';
+                setTimeout(() => {
+                    upgradeButton.style.animation = '';
+                    updateMaxCardsButton();
+                }, 500);
+
                 updateUpgrades();
                 updateScore();
                 saveProgress();
@@ -1049,42 +1118,58 @@
 
         async function loadProgress() {
             try {
-                if (!yg) return;
-                const storage = await yg.getStorage();
-                const savedData = await Promise.all([
-                    storage.getItem('score'),
-                    storage.getItem('maxCards'),
-                    storage.getItem('suitBonuses')
-                ]);
+                if (!yg) {
+                    // Используем localStorage как fallback
+                    score = parseInt(localStorage.getItem('score')) || 0;
+                    maxCards = parseInt(localStorage.getItem('maxCards')) || 2;
+                    const savedBonuses = localStorage.getItem('suitBonuses');
+                    if (savedBonuses) {
+                        const parsedBonuses = JSON.parse(savedBonuses);
+                        suits.forEach(s => {
+                            suitBonuses[s] = parsedBonuses[s] || 0;
+                        });
+                    }
+                } else {
+                    const storage = await yg.getStorage();
+                    const savedData = await Promise.all([
+                        storage.getItem('score'),
+                        storage.getItem('maxCards'),
+                        storage.getItem('suitBonuses')
+                    ]);
 
-                score = savedData[0] ? parseInt(savedData[0]) : 0;
-                maxCards = savedData[1] ? parseInt(savedData[1]) : 2;
-                if(savedData[2]) {
-                    const parsedBonuses = JSON.parse(savedData[2]);
-                    suits.forEach(s => {
-                        suitBonuses[s] = parsedBonuses[s] || 0;
-                    });
+                    score = savedData[0] ? parseInt(savedData[0]) : 0;
+                    maxCards = savedData[1] ? parseInt(savedData[1]) : 2;
+                    if(savedData[2]) {
+                        const parsedBonuses = JSON.parse(savedData[2]);
+                        suits.forEach(s => {
+                            suitBonuses[s] = parsedBonuses[s] || 0;
+                        });
+                    }
                 }
 
-                updateMaxCardsDisplay();
+                updateMaxCardsButton();
                 updateUpgrades();
                 updateScore();
             } catch (error) {
                 console.error("Ошибка загрузки:", error);
-                //showComboAlert("Ошибка данных!");
             }
         }
 
         async function saveProgress() {
             try {
-                if (!yg) return;
-                const storage = await yg.getStorage();
-                await storage.setItem('score', score.toString());
-                await storage.setItem('maxCards', maxCards.toString());
-                await storage.setItem('suitBonuses', JSON.stringify(suitBonuses));
+                if (!yg) {
+                    // Используем localStorage как fallback
+                    localStorage.setItem('score', score.toString());
+                    localStorage.setItem('maxCards', maxCards.toString());
+                    localStorage.setItem('suitBonuses', JSON.stringify(suitBonuses));
+                } else {
+                    const storage = await yg.getStorage();
+                    await storage.setItem('score', score.toString());
+                    await storage.setItem('maxCards', maxCards.toString());
+                    await storage.setItem('suitBonuses', JSON.stringify(suitBonuses));
+                }
             } catch (error) {
                 console.error("Ошибка сохранения прогресса:", error);
-                //showComboAlert("Ошибка сохранения прогресса!");
             }
         }
 
