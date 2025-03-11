@@ -221,8 +221,8 @@
 
 		#rewarded-video {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
+            bottom: 10px;
+            left: 10px;
             padding: 12px 25px;
             background: linear-gradient(45deg, #ff6666, #cc0000);
             border: none;
@@ -395,8 +395,8 @@
             }
 
             #rewarded-video {
-                bottom: 10px;
-                left: 10px;
+                right: 10px;
+                left: unset;
                 padding: 8px 15px;
                 font-size: 14px;
 				max-width: 120px;
@@ -606,7 +606,7 @@
 
         document.addEventListener('keydown', (event) => {
             // Проверяем, доступен ли SDK Яндекса
-            const isYandexDraft = true/*!yg || typeof yg == "undefined" || (yg && yg.environment?.draft == true)*/;
+            const isYandexDraft = false/*!yg || typeof yg == "undefined" || (yg && yg.environment?.draft == true)*/;
 
             const currentLevel = maxCards - 2;
             const nextLevelCost = maxCardCosts[currentLevel] || 10000000;
