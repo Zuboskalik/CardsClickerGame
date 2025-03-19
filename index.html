@@ -739,7 +739,7 @@
         let suitBonuses = {'♥':0, '♠':0, '♦':0, '♣':0};
 
 		const maxCardCosts =        [500, 2500, 12500, 125000, 750000, 1800000, 7000000, 9999999];
-        const suitUpgradeCosts =    [100, 500, 2500, 7500, 12500, 25000, 50000, 100000, 125000, 175000, 350000, 500000, 600000, 750000];
+        const suitUpgradeCosts =    [100, 500, 2500, 7500, 12500, 25000, 50000, 100000, 125000, 175000, 350000, 500000, 600000, 750000, 1800000, 7000000, 9999999, 19999999, 99999999];
 
         let rewardedBonus = 0;
         let rewardedAvailable = true;
@@ -1229,7 +1229,7 @@
         function updateRewardedButton() {
             const currentLevel = maxCards - 2;
             const nextLevelCost = maxCardCosts[currentLevel] || 10000000;
-            rewardedBonus = maxCards > 5 ? Math.ceil(nextLevelCost * 0.05) : Math.ceil(nextLevelCost * 0.1);
+            rewardedBonus = maxCards > 7 ? Math.ceil(nextLevelCost * 0.020) : (maxCards > 5 ? Math.ceil(nextLevelCost * 0.025) : Math.ceil(nextLevelCost * 0.050));
 
             const rewardButton = document.getElementById('rewarded-video');
             rewardButton.textContent = locales[currentLang].rewardedButton1 + `${rewardedBonus}` + locales[currentLang].rewardedButton2;
