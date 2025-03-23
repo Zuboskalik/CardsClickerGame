@@ -860,7 +860,6 @@
         });
 
         async function init() {
-            document.getElementById('loading-screen').textContent = locales[currentLang].loading;
             document.getElementById('loading-screen').style.display = 'flex';
 
             try {
@@ -888,6 +887,8 @@
         }
 
         function applyTranslations() {
+			document.getElementById('loading-screen').textContent = locales[currentLang].loading;
+			document.getElementById('pause-screen').textContent = locales[currentLang].loading;
             document.getElementById('click-button').textContent = locales[currentLang].clickButton;
             document.getElementById('rewarded-video').textContent = locales[currentLang].rewardedButton1 + `25` + locales[currentLang].rewardedButton2;
             document.querySelector('title').textContent = currentLang === 'ru'
